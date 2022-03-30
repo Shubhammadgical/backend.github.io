@@ -1,19 +1,4 @@
 import React, {Component} from "react";
-import elephant from "./animals/elephant.svg";
-import croc from "./animals/croc.svg"
-import giraffe from "./animals/giraffe.svg";
-import gorilla from "./animals/gorilla.svg";
-import koala from "./animals/koala.svg";
-import tiger from "./animals/tiger.svg";
-import whale from "./animals/whale.svg";
-import polarbear from "./animals/polar-bear.svg";
-import cow from "./animals/cow.jpg";
-import goat from "./animals/goat.jpg";
-import lion from "./animals/lion.jpg";
-import parrot from "./animals/parrot.jpg";
-import rabbit from "./animals/rabbit.jpg";
-import bear from "./animals/bear.jpg";
-import duck from "./animals/duck.jfif";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container } from "react-bootstrap";
 import http from "./httpService";
@@ -30,8 +15,8 @@ class KQQuestions extends Component{
         data:[],
         date:"",
         time:"",
-        datetime:""
-           
+        datetime:"",
+        error:2           
     }
     async fetchdata(){
         let response=await http.get(`/allQuestions`);
@@ -83,14 +68,22 @@ class KQQuestions extends Component{
         }
         this.setState(s1);
     }
-    setdata=()=>{
-        let newdata={name:this.state.name,count:this.state.errcount,date:this.state.date,time:this.state.time}
-        http.post(`/newData`,newdata);
-        console.log(newdata);
+     setdata=async()=>{
+         try{
+        let newdata={name:this.state.name,errcount:this.state.errcount,date:this.state.date,time:this.state.time}
+        let response=await http.post(`/newData`,newdata);
+        console.log(response.status);
+         }catch(err){
+            this.setState({show:3});
+            console.log(this.state.show)
+             this.setState({error:1});
+            console.log(this.state.error)
+         }
     }
-    handlebtn=(index)=>{
+    handlebtn=(opt)=>{
+        console.log(opt);
         let s1={...this.state};
-        if(index+1===s1.data[s1.qindex].answer){
+        if(opt===s1.data[s1.qindex].answer){
             console.log(s1.qindex);
             if(s1.qindex<4){
             s1.err=""
@@ -117,28 +110,14 @@ class KQQuestions extends Component{
         this.setState(s1);
     }
     render(){
-        let {questions,show,name,err,qindex,errcount,text,data}=this.state;
-        if(questions.length>0){
-            questions[0].image=elephant;
-            questions[1].image=croc;
-            questions[2].image=giraffe;
-            questions[3].image=gorilla;
-            questions[4].image=koala;
-            questions[5].image=tiger;
-            questions[6].image=whale;
-            questions[7].image=polarbear;
-            questions[8].image=cow;
-            questions[9].image=goat;
-            questions[10].image=lion;
-            questions[11].image=parrot;
-            questions[12].image=rabbit;
-            questions[13].image=bear;
-            questions[14].image=duck;
-        }
+        let {questions,show,name,err,qindex,errcount,text,data,error}=this.state;
+        console.log(error);
+        console.log(show)
         if(show==0){
             return(
                 <div className="container text-center p-4">
                     <h4>Welcome in Kids Quizz</h4>
+                    
                     <div className="form-group">
                             <input type="text" className="form-control" id="name" name="name" placeholder="Enter Name" value={name} onChange={this.handleChange} />
                     </div>
@@ -147,30 +126,38 @@ class KQQuestions extends Component{
                     <button className="btn btn-primary" onClick={()=>this.handleenter(0,questions.length-1)}>Enter</button>
                 </div>
             )
-        }else if(show==1){
+        }else if(show==1&& questions.length>0){
             return(
             <div className="container text-center p-4">
+                {console.log(data[qindex].image)}
                 <Container style={{maxWidth:400,maxHeight:400,minHeight:200,minWidth:200}}>
-                    <img className="img-fluid" alt="amimal" src={data[qindex].image} >
-                    </img>
+                    <img className="img-fluid" alt="Please check your connection."  src={data[qindex].image} >
+                    </img><br/>
+                    
                 </Container><br/>
                 {text}<br/>
                 {err&&<span className="text-danger">{err}</span>}<br/><br/>
-                {data[qindex].options.map((opt,index)=>(
+                <button className="btn btn-primary mx-4" 
+                    onClick={()=>this.handlebtn(data[qindex].opt1)}>{data[qindex].opt1}<br/></button>
+                <button className="btn btn-primary mx-4" 
+                    onClick={()=>this.handlebtn(data[qindex].opt2)}>{data[qindex].opt2}<br/></button>
                     <button className="btn btn-primary mx-4" 
-                    onClick={()=>this.handlebtn(index)}>{opt}<br/></button>
-                    
-                ))}
+                    onClick={()=>this.handlebtn(data[qindex].opt3)}>{data[qindex].opt3}<br/></button>
                 <br/>
+               
             </div>
             )
-        }else{
+        }else if(show==2 && error!=1){
             return(
                 <div className="container text-center p-4">
                     <h4>Result Screen of {name}</h4>
                     <h5>Error Count : <span className="text-danger">{errcount}</span></h5>
                     <button className="btn btn-primary" onClick={()=>this.handlerestart()}>Restart</button>
                 </div>
+            )
+        }else{
+            return(
+                <h4 className="text-center p-4">Error in Fetching Data, Please check your connection.</h4>
             )
         }
     }

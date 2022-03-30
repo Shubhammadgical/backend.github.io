@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = "http://localhost:2410";
+const baseURL = "https://warm-bastion-07300.herokuapp.com";
 
 function get(url){
     return axios.get(baseURL + url);

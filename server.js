@@ -13,20 +13,13 @@ app.use(function(req,res,next){
     );
         next();
 });
-const port = 2410;
+var port = process.env.PORT || 2410;
 app.listen(port, ()=> console.log(`Node app listening on port ${port}!`));
 
-let {playersData,questions}=require("./data.js");
+let db=require("./connection.js");
 
-app.get("/allDetails",function(req,res){
-    res.send(playersData)
-});
-app.get("/allQuestions",function(req,res){
-    res.send(questions)
-});
-app.post("/newData",function(req,res){
-    let body=req.body;
-    let newdata = {name:body.name,count: body.count,date:body.date,time:body.time};
-    playersData.push(newdata)
-    res.send(playersData)
-});
+app.get("/allPlayers",db.getplayersdata);
+
+app.get("/allQuestions",db.getdata);
+
+app.post("/newData",db.insertplayerdata);
